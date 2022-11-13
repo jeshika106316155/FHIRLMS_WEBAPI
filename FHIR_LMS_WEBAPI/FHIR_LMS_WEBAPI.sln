@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32901.215
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FHIR_LMS_WEBAPI", "FHIR_LMS_WEBAPI\FHIR_LMS_WEBAPI.csproj", "{B291A924-C29C-4ABA-B018-647F8EAE2BF1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FHIR_LMS_WEBAPI", "FHIR_LMS_WEBAPI\FHIR_LMS_WEBAPI.csproj", "{5B95F88D-A3FB-429B-A6AC-5764818781F2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B291A924-C29C-4ABA-B018-647F8EAE2BF1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B291A924-C29C-4ABA-B018-647F8EAE2BF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B291A924-C29C-4ABA-B018-647F8EAE2BF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B291A924-C29C-4ABA-B018-647F8EAE2BF1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B95F88D-A3FB-429B-A6AC-5764818781F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B95F88D-A3FB-429B-A6AC-5764818781F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B95F88D-A3FB-429B-A6AC-5764818781F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B95F88D-A3FB-429B-A6AC-5764818781F2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {1FF17137-E588-4BC4-B4FA-3F9C5175D921}
+		SolutionGuid = {1053B914-268B-465F-916B-F151B35EDE44}
 	EndGlobalSection
 EndGlobal

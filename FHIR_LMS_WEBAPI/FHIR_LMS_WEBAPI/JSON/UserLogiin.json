@@ -1,0 +1,21 @@
+{
+  "expirationDate": "",
+  "person": {
+    "id": "",
+    "identifier": "",
+    "name": "",
+    "username": ""
+  },
+  "role": [],
+  "organization": {
+    "id": "",
+    "identifier": "",
+    "status": "",
+    "name": "",
+    "cpname": "",
+    "cpphone": "",
+    "cpemail": ""
+  },
+  "roleAccess": [],
+  "userSelectedRole": ""
+}
