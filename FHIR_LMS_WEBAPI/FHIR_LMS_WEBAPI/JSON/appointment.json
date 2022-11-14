@@ -1,0 +1,23 @@
+{
+  "resourceType": "Appointment",
+  "status": "waitlist",
+  "slot": [
+    {
+      "reference": "Slot/861"
+    }
+  ],
+  "participant": [
+    {
+      "actor": {
+        "reference": "Patient/",
+        "display": ""
+      }
+    },
+    {
+      "actor": {
+        "reference": "PractitionerRole/856",
+        "display": "±M¥ô°Æ±Ð±Â"
+      }
+    }
+  ]
+}

@@ -6,6 +6,12 @@
     "name": "",
     "username": ""
   },
+  "patient": {
+    "id": "",
+    "identifier": "",
+    "name": "",
+    "username": ""
+  },
   "role": [],
   "organization": {
     "id": "",
