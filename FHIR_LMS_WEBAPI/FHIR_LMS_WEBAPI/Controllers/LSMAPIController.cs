@@ -16,40 +16,36 @@ namespace FHIR_LMS_WEBAPI.Controllers
     public class LSMAPIController : ApiController
     {
 
-        private void CheckGroupQuantity(JObject loginData, JObject appointment)
+        private JObject CheckGroupQuantity(JObject appointment, string token)
         {
+            dynamic errmsg = new JObject();
             HTTPrequest HTTPrequest = new HTTPrequest();
             string fhirUrl = ConfigurationManager.AppSettings.Get("TZFHIR_Url");
-            string FHIRResponseType = ConfigurationManager.AppSettings.Get("FHIRResponseType");
-
-            int groupQty = 0;
-            int bookedQty = 0;
-            int waitlistQty = 0;
 
             //GET Slot -> Course Code
-            string slotID = "Slot/861"; //appointment["slot"][0]["reference"].ToString();
-            JObject slot = HTTPrequest.getResource(fhirUrl, slotID, "", FHIRResponseType);
+            string slotID = appointment["slot"][0]["reference"].ToString();
+            JObject slot = HTTPrequest.getResource(fhirUrl, slotID, "", token);
 
             if (slot != null && slot["resourceType"] != null && (string)slot["resourceType"] == "Slot")
             {
                 string courseCode = slot["specialty"][0]["coding"][0]["code"].ToString();
 
                 //GET Group -> identifier=coursecode
-                JObject group = HTTPrequest.getResource(fhirUrl, "Group", "?identifier=" + courseCode, FHIRResponseType);
+                JObject group = HTTPrequest.getResource(fhirUrl, "Group", "?identifier=" + courseCode, token);
 
                 if (group != null && (int)group["total"] == 1)
                 {
                     //GET maximum number
-                    groupQty = group["entry"][0]["resource"]["quantity"] != null ? (int)group["entry"][0]["resource"]["quantity"] : 0;
+                    int groupQty = group["entry"][0]["resource"]["quantity"] != null ? (int)group["entry"][0]["resource"]["quantity"] : 0;
 
                     //GET Appointment -> slot id
                     //GET "Booked" Appointment Quantity
                     string param = "?slot=" + slotID.Split('/')[1] + "&status=booked";
-                    JObject appSearch = HTTPrequest.getResource(fhirUrl, "Appointment", param, FHIRResponseType);
+                    JObject appSearch = HTTPrequest.getResource(fhirUrl, "Appointment", param, token);
 
                     if (appSearch != null && (int)appSearch["total"] != 0)
                     {
-                        bookedQty = (int)appSearch["total"];
+                        int bookedQty = (int)appSearch["total"];
 
                         if (bookedQty < groupQty)
                         {
@@ -57,11 +53,11 @@ namespace FHIR_LMS_WEBAPI.Controllers
 
                             //GET "Waitlist" Appointments, Sort updated
                             param = "?slot=" + slotID.Split('/')[1] + "&status=waitlist";
-                            appSearch = HTTPrequest.getResource(fhirUrl, "Appointment", param, FHIRResponseType);
+                            appSearch = HTTPrequest.getResource(fhirUrl, "Appointment", param, token);
                             if (appSearch != null && (int)appSearch["total"] != 0)
                             {
                                 //Check whether this Appointment 
-                                waitlistQty = (int)appSearch["total"];
+                                int waitlistQty = (int)appSearch["total"];
                                 diff = diff < waitlistQty ? diff : waitlistQty;
                                 string appointmentID = appointment["id"].ToString();
 
@@ -73,8 +69,9 @@ namespace FHIR_LMS_WEBAPI.Controllers
                                         // Update 
                                         JObject new_appointment = (JObject)appSearch["entry"][i]["resource"];
                                         new_appointment.Property("meta").Remove();
-                                        new_appointment["status"]="booked";
-
+                                        new_appointment["status"] = "booked";
+                                        JObject result = HTTPrequest.putResource(fhirUrl, "Appointment/" + appointmentID, new_appointment, token);
+                                        return result;
                                     }
                                 }
 
@@ -114,69 +111,85 @@ namespace FHIR_LMS_WEBAPI.Controllers
                     else
                     {
                         //Alert maximum course
+                        errmsg.message = "This course has reached its maximum capacity. " +
+                            "We have added your name into the waiting list." +
+                            "You'll be able to see the course material once approved by admin.";
+                        return errmsg;
                     }
                 }
             }
+
+            errmsg.message = "Update Appointment error";
+            return errmsg;
         }
-    }
 
-    // POST: API/
-    [System.Web.Http.HttpPost]
-    public IHttpActionResult SelectCourse([FromBody] userLogin user)
-    {
-        HTTPrequest HTTPrequest = new HTTPrequest();
-        JObject loginData = JObject.Parse(File.ReadAllText(@"D:\110325102\FHIR_LMS_WEBAPI\FHIR_LMS_WEBAPI\FHIR_LMS_WEBAPI\JSON\UserLogin.json"));
-        string fhirUrl = ConfigurationManager.AppSettings.Get("TZFHIR_Url");
-        string FHIRResponseType = ConfigurationManager.AppSettings.Get("FHIRResponseType");
-        string param = "?identifier=" + user.Email;
-        object person = HTTPrequest.getResource(fhirUrl, "Person", param, FHIRResponseType);
 
-        if (person != null || (int)((JObject)person)["total"] != 0)
+        // POST: API/
+        [System.Web.Http.HttpPost]
+        public IHttpActionResult SelectCourse([FromBody] userLogin user)
         {
-            JObject personUser = (JObject)person;
-            if ((int)personUser["total"] == 1)
+            string token = string.Empty;
+            var headers = Request.Headers;
+            if (headers.Contains("Custom"))
             {
-                loginData["person"]["id"] = ((JToken)personUser["entry"][0]["resource"]["id"] != null) ? personUser["entry"][0]["resource"]["id"] : "";
-                loginData["person"]["name"] = ((JToken)personUser["entry"][0]["resource"]["name"][0]["text"] != null) ? personUser["entry"][0]["resource"]["name"][0]["text"] : "";
-                loginData["person"]["identifier"] = ((JToken)personUser["entry"][0]["resource"]["identifier"][0] != null) ? personUser["entry"][0]["resource"]["identifier"][0]["value"] : "";
+                token = headers.GetValues("Custom").First();
+            }
 
-                if (personUser["entry"][0]["resource"]["link"] != null)
+            dynamic errmsg = new JObject();
+
+            HTTPrequest HTTPrequest = new HTTPrequest();
+            JObject loginData = JObject.Parse(File.ReadAllText(@"D:\110325102\FHIR_LMS_WEBAPI\FHIR_LMS_WEBAPI\FHIR_LMS_WEBAPI\JSON\UserLogin.json"));
+            string fhirUrl = ConfigurationManager.AppSettings.Get("TZFHIR_Url");
+            string param = "?identifier=" + user.Email;
+            object person = HTTPrequest.getResource(fhirUrl, "Person", param, token);
+
+            if (person != null || (int)((JObject)person)["total"] != 0)
+            {
+                JObject personUser = (JObject)person;
+                if ((int)personUser["total"] == 1)
                 {
-                    JObject role = (JObject)personUser["entry"][0]["resource"]["link"][0];
+                    loginData["person"]["id"] = ((JToken)personUser["entry"][0]["resource"]["id"] != null) ? personUser["entry"][0]["resource"]["id"] : "";
+                    loginData["person"]["name"] = ((JToken)personUser["entry"][0]["resource"]["name"][0]["text"] != null) ? personUser["entry"][0]["resource"]["name"][0]["text"] : "";
+                    loginData["person"]["identifier"] = ((JToken)personUser["entry"][0]["resource"]["identifier"][0] != null) ? personUser["entry"][0]["resource"]["identifier"][0]["value"] : "";
 
-                    string roleID = role["target"]["reference"].ToString();
-                    object userRole = null;
-                    if (roleID.Split('/')[0] == "Practitioner")
+                    if (personUser["entry"][0]["resource"]["link"] != null)
                     {
-                        userRole = HTTPrequest.getResource(fhirUrl, "PractitionerRole", "?practitioner=" + roleID.Split('/')[1], FHIRResponseType);
+                        JObject role = (JObject)personUser["entry"][0]["resource"]["link"][0];
+
+                        string roleID = role["target"]["reference"].ToString();
+                        object userRole = null;
+                        if (roleID.Split('/')[0] == "Practitioner")
+                        {
+                            userRole = HTTPrequest.getResource(fhirUrl, "PractitionerRole", "?practitioner=" + roleID.Split('/')[1], token);
+                        }
+                        else if (roleID.Split('/')[0] == "Patient")
+                        {
+                            loginData["patient"]["id"] = roleID.Split('/')[1] != null ? roleID.Split('/')[1] : "";
+                            userRole = HTTPrequest.getResource(fhirUrl, roleID.Split('/')[0], '/' + roleID.Split('/')[1], token);
+
+                            JObject patientUser = (JObject)userRole;
+                            if (patientUser != null && patientUser["resourceType"] != null && (string)patientUser["resourceType"] == "Patient")
+                            {
+                                //Create Appointment Waitlist
+                                JObject appointment = JObject.Parse(File.ReadAllText(@"D:\110325102\FHIR_LMS_WEBAPI\FHIR_LMS_WEBAPI\FHIR_LMS_WEBAPI\JSON\appointment.json"));
+                                appointment["participant"][0]["actor"]["reference"] = "Patient/" + patientUser["id"];
+                                appointment["participant"][0]["actor"]["display"] = patientUser["name"][0]["text"];
+
+                                JObject new_appointment = HTTPrequest.postResource(fhirUrl, "Appointment", appointment, token);
+
+                                //Check Group Quantity
+                                JObject result = CheckGroupQuantity(new_appointment, token);//, result);
+                                return Ok(result);
+
+                            }
+                        }
                     }
-                    else if (roleID.Split('/')[0] == "Patient")
-                    {
-                        loginData["patient"]["id"] = roleID.Split('/')[1] != null ? roleID.Split('/')[1] : "";
-                        userRole = HTTPrequest.getResource(fhirUrl, roleID.Split('/')[0], '/' + roleID.Split('/')[1], FHIRResponseType);
-                        //userRole = HTTPrequest.getResource(fhirUrl, roleID.Split('/')[0], "/123", FHIRResponseType);
-                    }
-
-                    JObject patientUser = (JObject)userRole;
-                    if (patientUser != null && patientUser["resourceType"] != null && (string)patientUser["resourceType"] == "Patient")
-                    {
-                        //Create Appointment Waitlist
-                        JObject appointment = JObject.Parse(File.ReadAllText(@"D:\110325102\FHIR_LMS_WEBAPI\FHIR_LMS_WEBAPI\FHIR_LMS_WEBAPI\JSON\appointment.json"));
-                        appointment["participant"][0]["actor"]["reference"] = "Patient/" + patientUser["id"];
-                        appointment["participant"][0]["actor"]["display"] = patientUser["name"][0]["text"];
-
-                        //JObject result = HTTPrequest.postResource(fhirUrl, "Appointment", appointment, FHIRResponseType);
-
-                        //Check Group Quantity
-                        CheckGroupQuantity(loginData, appointment);//, result); 
-
-                    }
-
                 }
             }
+            errmsg.message = "Something went wrong.";
+            errmsg.token = token;
+            return Ok(errmsg);
         }
-        return Ok(new userLogin());
-    }
 
-}
+    }
 }
