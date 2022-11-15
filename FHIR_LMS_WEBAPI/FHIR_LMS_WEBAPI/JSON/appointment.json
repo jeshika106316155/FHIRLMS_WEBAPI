@@ -12,12 +12,6 @@
         "reference": "Patient/",
         "display": ""
       }
-    },
-    {
-      "actor": {
-        "reference": "PractitionerRole/856",
-        "display": "±M¥ô°Æ±Ð±Â"
-      }
     }
   ]
 }

@@ -10,7 +10,7 @@ namespace FHIR_LMS_WEBAPI.Models
 {
     public class HTTPrequest
     {
-        public JObject getResource(string fhirUrl, string ResourceName, string Parameter, string token) //, Action <object> CallbackFunc
+        public JObject getResource(string fhirUrl, string ResourceName, string Parameter, string token, Func<JObject, JObject, string, JObject> CallbackFunction, JObject loginData)
         {
             dynamic errmsg = new JObject();
 
@@ -31,34 +31,29 @@ namespace FHIR_LMS_WEBAPI.Models
                         var result = streamReader.ReadToEnd();
                         JObject resultJson = JObject.Parse(result);
 
-                        //var id = resultJson["id"];
-                        //if (CallbackFunc != null)
-                        //{
-                        //    CallbackFunc(resultJson);
-                        //}
-                        return resultJson;
+                        if (resultJson["resourceType"].ToString() == "Bundle" && (int)resultJson["total"] <= 0)
+                        {
+                            errmsg.total = 0;
+                            errmsg.message = ResourceName + " does not exist.";
+                            return errmsg;
+                        }
+
+                        JObject callbackResult = CallbackFunction(resultJson, loginData, token);
+                        return callbackResult;
+
                     }
-                }
-                else
-                {
-                    //reqMessage = "Error upload to FHIR Server!"; 
-                    errmsg.total = 0;
-                    errmsg.message = "Error upload to FHIR Server!";
-                    return errmsg;
                 }
             }
             catch (Exception e)
             {
-                errmsg.total = 0;
-                errmsg.message = "Error request to FHIR Server!";
+                errmsg.message = loginData["errmsg"];
                 return errmsg;
             }
-            errmsg.total = 0;
-            errmsg.message = "Error request to FHIR Server!";
+            errmsg.message = loginData["errmsg"];
             return errmsg;
         }
 
-        public JObject postResource(string fhirUrl, string ResourceName, JObject body, string token) //, Action <object> CallbackFunc
+        public JObject postResource(string fhirUrl, string ResourceName, JObject body, string token, Func<JObject, JObject, string, JObject> CallbackFunction, JObject loginData)
         {
             dynamic errmsg = new JObject();
 
@@ -85,35 +80,21 @@ namespace FHIR_LMS_WEBAPI.Models
                     {
                         var result = streamReader.ReadToEnd();
                         JObject resultJson = JObject.Parse(result);
-
-                        //var id = resultJson["id"];
-                        //if (CallbackFunc != null)
-                        //{
-                        //    CallbackFunc(resultJson);
-                        //}
-                        return resultJson;
+                        JObject callbackResult = CallbackFunction(resultJson, loginData, token);
+                        return callbackResult;
                     }
-                }
-                else
-                {
-                    //reqMessage = "Error upload to FHIR Server!"; 
-                    errmsg.total = 0;
-                    errmsg.message = "Error upload to FHIR Server!";
-                    return errmsg;
                 }
             }
             catch (Exception e)
             {
-                errmsg.total = 0;
-                errmsg.message = "Error request to FHIR Server!";
+                errmsg.message = loginData["errmsg"];
                 return errmsg;
             }
-            errmsg.total = 0;
-            errmsg.message = "Error request to FHIR Server!";
+            errmsg.message = loginData["errmsg"];
             return errmsg;
         }
 
-        public JObject putResource(string fhirUrl, string ResourceName, JObject body, string token) //, Action <object> CallbackFunc
+        public JObject putResource(string fhirUrl, string ResourceName, JObject body, string token, Func<JObject, JObject, string, JObject> CallbackFunction, JObject loginData)
         {
             dynamic errmsg = new JObject();
 
@@ -140,31 +121,21 @@ namespace FHIR_LMS_WEBAPI.Models
                     {
                         var result = streamReader.ReadToEnd();
                         JObject resultJson = JObject.Parse(result);
-
-                        //var id = resultJson["id"];
-                        //if (CallbackFunc != null)
-                        //{
-                        //    CallbackFunc(resultJson);
-                        //}
+                        if (CallbackFunction != null)
+                        {
+                            JObject callbackResult = CallbackFunction(resultJson, loginData, token);
+                            return callbackResult;
+                        }
                         return resultJson;
                     }
-                }
-                else
-                {
-                    //reqMessage = "Error upload to FHIR Server!"; 
-                    errmsg.total = 0;
-                    errmsg.message = "Error upload to FHIR Server!";
-                    return errmsg;
                 }
             }
             catch (Exception e)
             {
-                errmsg.total = 0;
-                errmsg.message = "Error request to FHIR Server!";
+                errmsg.message = loginData["errmsg"];
                 return errmsg;
             }
-            errmsg.total = 0;
-            errmsg.message = "Error request to FHIR Server!";
+            errmsg.message = loginData["errmsg"];
             return errmsg;
         }
     }

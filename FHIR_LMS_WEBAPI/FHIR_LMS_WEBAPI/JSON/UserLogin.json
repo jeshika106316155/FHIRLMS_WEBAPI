@@ -3,25 +3,24 @@
   "person": {
     "id": "",
     "identifier": "",
-    "name": "",
-    "username": ""
+    "name": ""
   },
   "patient": {
+    "id": ""
+  },
+  "schedule": {
     "id": "",
-    "identifier": "",
-    "name": "",
-    "username": ""
+    "courseCode": "",
+    "maxParticipant": ""
+  },
+  "slot": {
+    "id": ""
   },
   "role": [],
-  "organization": {
-    "id": "",
-    "identifier": "",
-    "status": "",
-    "name": "",
-    "cpname": "",
-    "cpphone": "",
-    "cpemail": ""
-  },
   "roleAccess": [],
-  "userSelectedRole": ""
+  "userSelectedRole": "",
+  "appointment": {
+    "id": ""
+  },
+  "errmsg": ""
 }

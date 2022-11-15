@@ -9,5 +9,6 @@ namespace FHIR_LMS_WEBAPI.Models
     {
         public string Email { get; set; }
         public string Password { get; set; }
+        public string ScheduleID { get; set; }
     }
 }
