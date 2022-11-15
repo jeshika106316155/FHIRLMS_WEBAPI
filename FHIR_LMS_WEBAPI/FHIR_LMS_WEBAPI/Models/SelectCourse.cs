@@ -32,6 +32,7 @@ namespace FHIR_LMS_WEBAPI.Models
                 {
                     param = "?practitioner=" + roleID.Split('/')[1];
                     result = HTTPrequest.getResource(fhirUrl, "PractitionerRole", param, token, GetSchedule, loginData);
+                    return result;
                 }
                 else if (roleID.Split('/')[0] == "Patient")
                 {
@@ -40,14 +41,11 @@ namespace FHIR_LMS_WEBAPI.Models
                         loginData["errmsg"] = "GET Patient failed.";
                         param = '/' + loginData["patient"]["id"].ToString();
                         result = HTTPrequest.getResource(fhirUrl, "Patient", param, token, GetSchedule, loginData);
+                        return result;
                     }
-                    else
-                    {
-                        result["message"] = "Patient does not belong to this Person.";
-                    }
+                    result["Message"] = "Patient does not belong to this Person.";
                 }
             }
-
             return result;
         }
 
@@ -148,7 +146,7 @@ namespace FHIR_LMS_WEBAPI.Models
                 return result;
             }
             //Alert maximum course
-            result["message"] = "This course has reached its maximum capacity. " +
+            result["Message"] = "This course has reached its maximum capacity. " +
                 "We have added your name into the waiting list." +
                 "You'll be able to see the course material once approved by admin.";
             return result;
@@ -182,7 +180,7 @@ namespace FHIR_LMS_WEBAPI.Models
 
             }
             //Alert maximum course
-            result["message"] = "This course has reached its maximum capacity. " +
+            result["Message"] = "This course has reached its maximum capacity. " +
                 "We have added your name into the waiting list." +
                 "You'll be able to see the course material once approved by admin.";
             return result;

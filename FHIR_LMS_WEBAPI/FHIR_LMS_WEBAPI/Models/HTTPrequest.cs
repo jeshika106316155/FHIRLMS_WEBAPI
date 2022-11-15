@@ -35,7 +35,7 @@ namespace FHIR_LMS_WEBAPI.Models
                         if (resultJson["resourceType"].ToString() == "Bundle" && (int)resultJson["total"] <= 0)
                         {
                             errmsg.total = 0;
-                            errmsg.message = ResourceName + " does not exist.";
+                            errmsg.Message = ResourceName + " does not exist.";
                             return errmsg;
                         }
 
