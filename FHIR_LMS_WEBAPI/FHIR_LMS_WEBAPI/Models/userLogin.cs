@@ -7,8 +7,7 @@ namespace FHIR_LMS_WEBAPI.Models
 {
     public class userLogin
     {
-        public string Email { get; set; }
-        public string Password { get; set; }
-        public string ScheduleID { get; set; }
+        public string patientId { get; set; }
+        public string personId { get; set; }
     }
 }
