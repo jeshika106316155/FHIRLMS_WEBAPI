@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -34,7 +35,7 @@ namespace FHIR_LMS_WEBAPI.Models
                         if (resultJson["resourceType"].ToString() == "Bundle" && (int)resultJson["total"] <= 0)
                         {
                             errmsg.total = 0;
-                            errmsg.message = ResourceName + " does not exist.";
+                            errmsg.Message = ResourceName + " does not exist.";
                             return errmsg;
                         }
 
@@ -46,10 +47,10 @@ namespace FHIR_LMS_WEBAPI.Models
             }
             catch (Exception e)
             {
-                errmsg.message = loginData["errmsg"];
+                errmsg.Message = loginData["errmsg"]+"\n"+e.Message;
                 return errmsg;
             }
-            errmsg.message = loginData["errmsg"];
+            errmsg.Message = loginData["errmsg"];
             return errmsg;
         }
 
@@ -87,10 +88,59 @@ namespace FHIR_LMS_WEBAPI.Models
             }
             catch (Exception e)
             {
-                errmsg.message = loginData["errmsg"];
+                errmsg.Message = loginData["errmsg"] + "\n" + e.Message;
                 return errmsg;
             }
-            errmsg.message = loginData["errmsg"];
+            errmsg.Message = loginData["errmsg"];
+            return errmsg;
+        }
+
+        public JObject postResource(string fhirUrl, string ResourceName, NameValueCollection form, string token, Func<JObject, JObject, string, JObject> CallbackFunction, JObject loginData)
+        {
+            dynamic errmsg = new JObject();
+
+            try
+            {
+                ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
+                var requestHttp = (HttpWebRequest)WebRequest.Create(fhirUrl + ResourceName);
+                requestHttp.ContentType = "application/x-www-form-urlencoded";
+                requestHttp.Method = "POST";
+                requestHttp.Headers["Authorization"] = token;
+                string postBody = string.Empty;
+
+
+                foreach(string key in form.AllKeys)
+                {
+                    string value = form.Get(key);
+                    postBody+=HttpUtility.UrlEncode(key + "=" + value+"&");
+                }
+
+                byte[] byteArray = System.Text.Encoding.UTF8.GetBytes(postBody);
+                using (Stream reqStream = requestHttp.GetRequestStream())
+                {
+                    reqStream.Write(byteArray, 0, byteArray.Length);
+                }
+
+                var response = (HttpWebResponse)requestHttp.GetResponse();
+                if (response.StatusCode == HttpStatusCode.Created)
+                {
+                    using (var streamReader = new StreamReader(response.GetResponseStream()))
+                    {
+                        var result = streamReader.ReadToEnd();
+                        JObject resultJson = JObject.Parse(result);
+                        JObject callbackResult = CallbackFunction(resultJson, loginData, token);
+                        return callbackResult;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                errmsg.Message = loginData["errmsg"] + "\n" + e.Message;
+                return errmsg;
+            }
+            errmsg.Message = loginData["errmsg"];
             return errmsg;
         }
 
@@ -132,10 +182,10 @@ namespace FHIR_LMS_WEBAPI.Models
             }
             catch (Exception e)
             {
-                errmsg.message = loginData["errmsg"];
+                errmsg.Message = loginData["errmsg"] + "\n" + e.Message;
                 return errmsg;
             }
-            errmsg.message = loginData["errmsg"];
+            errmsg.Message = loginData["errmsg"];
             return errmsg;
         }
     }

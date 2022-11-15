@@ -16,32 +16,34 @@ namespace FHIR_LMS_WEBAPI.Models
             HTTPrequest HTTPrequest = new HTTPrequest();
 
             JObject result = null;
-            if ((int)personUser["total"] == 1)
+            loginData["person"]["id"] = personUser["id"] != null ? personUser["id"] : "";
+            loginData["person"]["name"] = personUser["name"][0]["text"] != null ? personUser["name"][0]["text"] : "";
+            loginData["person"]["identifier"] = personUser["identifier"][0] != null ? personUser["identifier"][0]["value"] : "";
+
+            if (personUser["link"] != null)
             {
-                loginData["person"]["id"] = personUser["entry"][0]["resource"]["id"] != null ? personUser["entry"][0]["resource"]["id"] : "";
-                loginData["person"]["name"] = personUser["entry"][0]["resource"]["name"][0]["text"] != null ? personUser["entry"][0]["resource"]["name"][0]["text"] : "";
-                loginData["person"]["identifier"] = personUser["entry"][0]["resource"]["identifier"][0] != null ? personUser["entry"][0]["resource"]["identifier"][0]["value"] : "";
+                JObject role = (JObject)personUser["link"][0];
 
-                if (personUser["entry"][0]["resource"]["link"] != null)
+                string roleID = role["target"]["reference"].ToString();
+
+                string param = string.Empty;
+
+                if (roleID.Split('/')[0] == "Practitioner")
                 {
-                    JObject role = (JObject)personUser["entry"][0]["resource"]["link"][0];
-
-                    string roleID = role["target"]["reference"].ToString();
-
-                    string param = string.Empty;
-
-                    if (roleID.Split('/')[0] == "Practitioner")
+                    param = "?practitioner=" + roleID.Split('/')[1];
+                    result = HTTPrequest.getResource(fhirUrl, "PractitionerRole", param, token, GetSchedule, loginData);
+                    return result;
+                }
+                else if (roleID.Split('/')[0] == "Patient")
+                {
+                    if (loginData["patient"]["id"].ToString() == roleID.Split('/')[1].ToString())
                     {
-                        param = "?practitioner=" + roleID.Split('/')[1];
-                        result = HTTPrequest.getResource(fhirUrl, "PractitionerRole", param, token, GetSchedule, loginData);
-                    }
-                    else if (roleID.Split('/')[0] == "Patient")
-                    {
-                        loginData["patient"]["id"] = roleID.Split('/')[1];
                         loginData["errmsg"] = "GET Patient failed.";
                         param = '/' + loginData["patient"]["id"].ToString();
                         result = HTTPrequest.getResource(fhirUrl, "Patient", param, token, GetSchedule, loginData);
+                        return result;
                     }
+                    result["Message"] = "Patient does not belong to this Person.";
                 }
             }
             return result;
@@ -144,7 +146,7 @@ namespace FHIR_LMS_WEBAPI.Models
                 return result;
             }
             //Alert maximum course
-            result["message"] = "This course has reached its maximum capacity. " +
+            result["Message"] = "This course has reached its maximum capacity. " +
                 "We have added your name into the waiting list." +
                 "You'll be able to see the course material once approved by admin.";
             return result;
@@ -178,7 +180,7 @@ namespace FHIR_LMS_WEBAPI.Models
 
             }
             //Alert maximum course
-            result["message"] = "This course has reached its maximum capacity. " +
+            result["Message"] = "This course has reached its maximum capacity. " +
                 "We have added your name into the waiting list." +
                 "You'll be able to see the course material once approved by admin.";
             return result;
