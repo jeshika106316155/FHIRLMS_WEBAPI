@@ -14,7 +14,7 @@ using System.Collections.Specialized;
 namespace FHIR_LMS_WEBAPI.Controllers
 {
     [EnableCors(origins: "*", headers: "*", methods: "*")]
-    public class LSMAPIController : ApiController
+    public class LMSAPIController : ApiController
     {
 
         [System.Web.Http.HttpPost]
